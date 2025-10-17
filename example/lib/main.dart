@@ -34,15 +34,16 @@ class _MyAppState extends State<MyApp> {
     RealtimeNetwork.listenConnectivity().listen((isConnected) {
       log('Connectivity: $isConnected');
     });
+
+    RealtimeNetwork.runTest().then((value) {
+      log(value.toMap().toString());
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(title: const Text('Plugin example app')),
-        body: Center(child: Text('Values')),
-      ),
+      home: Scaffold(appBar: AppBar(title: const Text('Plugin example app'))),
     );
   }
 }
