@@ -17,6 +17,10 @@ import java.net.InetAddress
 import java.net.URL
 import kotlin.system.measureTimeMillis
 import kotlin.math.abs
+import java.net.Socket
+import java.net.InetSocketAddress
+import kotlinx.coroutines.delay
+import kotlin.math.abs
 
 class RealtimeNetworkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     private lateinit var channel: MethodChannel
@@ -97,32 +101,38 @@ class RealtimeNetworkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         var ip = ""
         val isp = getNetworkProvider()
 
-        // --- Ping & Jitter CORRECTION ---
         try {
+            val pingResults = mutableListOf<Long>()
+
             repeat(4) {
-                var time = 0L
                 try {
-                    val url = URL("http://speedtest.tele2.net/1KB.zip") // Use a tiny file
-                    val conn = url.openConnection() as HttpURLConnection
-                    conn.requestMethod = "GET"
-                    conn.connectTimeout = 5000 
-                    conn.readTimeout = 5000 
-                    
-                    time = measureTimeMillis {
-                        // Measure time to establish connection and get first byte
-                        conn.connect()
-                        conn.inputStream.use { it.read() } // Read just one byte
+                    val startTime = System.currentTimeMillis()
+
+                    // Execute a single ICMP ping using the system's ping command
+                    val process = Runtime.getRuntime().exec(arrayOf("ping", "-c", "1", "-W", "2", "1.1.1.1"))
+                    val exitCode = process.waitFor()
+
+                    val endTime = System.currentTimeMillis()
+                    val duration = endTime - startTime
+
+                    if (exitCode == 0) {
+                        // Ping successful
+                        pingResults.add(duration)
+                    } else {
+                        // Ping failed or timed out
+                        pingResults.add(1000L)
                     }
-                    conn.disconnect()
-                    pingResults.add(time)
+
                     delay(200)
                 } catch (_: Exception) {
-                    pingResults.add(1000L) // Record a failure time (e.g., max timeout)
+                    pingResults.add(1000L)
                 }
             }
+
+            // Average ping
             pingAvg = pingResults.average().toLong()
-            
-            // JITTER CORRECTION: Calculate the average of absolute differences between successive pings.
+
+            // Calculate jitter as average absolute difference between successive pings
             if (pingResults.size > 1) {
                 val differences = (1 until pingResults.size).map { i ->
                     abs(pingResults[i] - pingResults[i - 1])
@@ -131,7 +141,12 @@ class RealtimeNetworkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
             } else {
                 jitter = 0L
             }
-        } catch (_: Exception) {}
+
+        } catch (_: Exception) {
+            pingAvg = 0L
+            jitter = 0L
+        }
+
 
         // --- Download speed test CORRECTION (Clarity) ---
         try {

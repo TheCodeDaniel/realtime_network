@@ -30,9 +30,9 @@ class _MyAppState extends State<MyApp> {
       log('Jitter: ${stats.jitter}');
       log('Provider: ${stats.isp}');
     });
-    // RealtimeNetwork.listenConnectivity().listen((isConnected) {
-    //   log('Connectivity: $isConnected');
-    // });
+    RealtimeNetwork.listenConnectivity().listen((isConnected) {
+      log('Connectivity: $isConnected');
+    });
   }
 
   @override
