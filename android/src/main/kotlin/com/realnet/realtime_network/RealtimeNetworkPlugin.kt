@@ -233,11 +233,15 @@ class RealtimeNetworkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         connectivityCallback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
-                channel.invokeMethod("onConnectivityChanged", true)
+                scope.launch(Dispatchers.Main) {
+                    channel.invokeMethod("onConnectivityChanged", true)
+                }
             }
 
             override fun onLost(network: Network) {
-                channel.invokeMethod("onConnectivityChanged", false)
+                scope.launch(Dispatchers.Main) {
+                    channel.invokeMethod("onConnectivityChanged", false)
+                }
             }
         }
         cm.registerDefaultNetworkCallback(connectivityCallback!!)
