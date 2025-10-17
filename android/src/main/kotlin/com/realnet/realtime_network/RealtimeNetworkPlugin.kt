@@ -135,7 +135,7 @@ class RealtimeNetworkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
 
         // --- Download speed test CORRECTION (Clarity) ---
         try {
-            val url = URL("http://speedtest.tele2.net/10MB.zip")
+            val url = URL("https://speed.cloudflare.com/__down?bytes=10000000")
             val conn = url.openConnection() as HttpURLConnection
             conn.connectTimeout = 8000
             conn.readTimeout = 8000
