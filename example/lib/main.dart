@@ -21,8 +21,15 @@ class _MyAppState extends State<MyApp> {
     _handleRealtime();
   }
 
+  @override
+  void dispose() {
+    RealtimeNetwork.stopListening(); // Stop network statistics listening
+    RealtimeNetwork.stopConnectivityListening(); // Stop network connectivity listening
+    super.dispose();
+  }
+
   _handleRealtime() {
-    RealtimeNetwork.startListening().listen((stats) {
+    RealtimeNetwork.startListening(intervalSeconds: 5).listen((stats) {
       log('Download: ${stats.downloadSpeed} Mbps');
       log('Upload: ${stats.uploadSpeed} Mbps');
       log('Ping: ${stats.ping} ms');
